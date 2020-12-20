@@ -1628,7 +1628,8 @@ static irqreturn_t nvt_ts_work_func(int irq, void *data)
 	uint32_t pen_btn2 = 0;
 	uint32_t pen_battery = 0;
 
-	pm_qos_update_request(&ts->pm_qos_req, 100);
+	pm_qos_update_request(&ts->pm_touch_req, 100);
+	pm_qos_update_request(&ts->pm_spi_req, 100);
 
 #if WAKEUP_GESTURE
 	if (bTouchIsAwake == 0) {
@@ -1865,8 +1866,8 @@ static irqreturn_t nvt_ts_work_func(int irq, void *data)
 	} /* if (ts->pen_support) */
 
 XFER_ERROR:
-
-	pm_qos_update_request(&ts->pm_qos_req, PM_QOS_DEFAULT_VALUE);
+	pm_qos_update_request(&ts->pm_spi_req, PM_QOS_DEFAULT_VALUE);
+	pm_qos_update_request(&ts->pm_touch_req, PM_QOS_DEFAULT_VALUE);
 	mutex_unlock(&ts->lock);
 	lpm_disable_for_input(false);
 	return IRQ_HANDLED;
@@ -2932,7 +2933,15 @@ static int32_t nvt_ts_probe(struct spi_device *client)
 			NVT_LOG("request irq %d succeed\n", client->irq);
 		}
 
-		pm_qos_add_request(&ts->pm_qos_req, PM_QOS_CPU_DMA_LATENCY,
+		ts->pm_spi_req.type = PM_QOS_REQ_AFFINE_IRQ;
+		ts->pm_spi_req.irq = geni_spi_get_master_irq(client);
+		irq_set_perf_affinity(ts->pm_spi_req.irq, IRQF_PERF_AFFINE);
+		pm_qos_add_request(&ts->pm_spi_req, PM_QOS_CPU_DMA_LATENCY,
+			PM_QOS_DEFAULT_VALUE);
+
+		ts->pm_touch_req.type = PM_QOS_REQ_AFFINE_IRQ;
+		ts->pm_touch_req.irq = client->irq;
+		pm_qos_add_request(&ts->pm_touch_req, PM_QOS_CPU_DMA_LATENCY,
 				PM_QOS_DEFAULT_VALUE);
 	}
 
@@ -3246,7 +3255,8 @@ static int32_t nvt_ts_remove(struct spi_device *client)
 	unregister_early_suspend(&ts->early_suspend);
 #endif
 
-	pm_qos_remove_request(&ts->pm_qos_req);
+	pm_qos_remove_request(&ts->pm_touch_req);
+	pm_qos_remove_request(&ts->pm_spi_req);
 
 if (pen_charge_state_notifier_unregister_client(&ts->pen_charge_state_notifier))
 		NVT_ERR("Error occurred while unregistering pen charge state notifier.\n");
