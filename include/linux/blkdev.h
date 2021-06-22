@@ -625,6 +625,12 @@ struct request_queue {
 	u64			write_hints[BLK_MAX_WRITE_HINTS];
 	atomic64_t		io_stime;
 	atomic64_t		io_wtime;
+
+#ifdef CONFIG_UFSTW
+#if defined(CONFIG_UFSFEATURE30)
+	bool			turbo_write_dev;
+#endif
+#endif
 };
 
 #define QUEUE_FLAG_QUEUED	0	/* uses generic tag queueing */
