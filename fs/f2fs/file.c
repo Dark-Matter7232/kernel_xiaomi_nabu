@@ -22,6 +22,10 @@
 #include <linux/uuid.h>
 #include <linux/file.h>
 
+#if defined(CONFIG_UFSTW) && defined(CONFIG_UFSFEATURE30)
+#include <linux/ufstw.h>
+#endif
+
 #include "f2fs.h"
 #include "node.h"
 #include "segment.h"
@@ -257,6 +261,10 @@ static int f2fs_do_sync_file(struct file *file, loff_t start, loff_t end,
 	ktime_t start_time, delta;
 	unsigned long long duration;
 
+#if defined(CONFIG_UFSTW) && defined(CONFIG_UFSFEATURE30)
+	bool turbo_set = false;
+#endif
+
 	if (unlikely(f2fs_readonly(inode->i_sb) ||
 				is_sbi_flag_set(sbi, SBI_CP_DISABLED)))
 		return 0;
@@ -331,6 +339,10 @@ go_write:
 		clear_inode_flag(inode, FI_UPDATE_WRITE);
 		goto out;
 	}
+#if defined(CONFIG_UFSTW) && defined(CONFIG_UFSFEATURE30)
+	bdev_set_turbo_write(sbi->sb->s_bdev);
+	turbo_set = true;
+#endif
 sync_nodes:
 	atomic_inc(&sbi->wb_sync_req[NODE]);
 	ret = f2fs_fsync_node_pages(sbi, inode, &wbc, atomic, &seq_id);
@@ -385,6 +397,10 @@ out:
 		pr_info("[f2fs] slow fsync: %llu ms, cp_reason: %s, "
 			"datasync = %d, ret = %d", duration,
 			f2fs_cp_reasons[cp_reason], datasync, ret);
+#if defined(CONFIG_UFSTW) && defined(CONFIG_UFSFEATURE30)
+	if (turbo_set)
+		bdev_clear_turbo_write(sbi->sb->s_bdev);
+#endif
 	trace_f2fs_sync_file_exit(inode, cp_reason, datasync, ret);
 	f2fs_trace_ios(NULL, 1);
 	stat_inc_sync_file_count(sbi);
