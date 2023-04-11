@@ -4504,7 +4504,7 @@ __alloc_pages_nodemask(gfp_t gfp_mask, unsigned int order, int preferred_nid,
 		if (duration_ms > TRACE_SLOWPATH_THRESHOLD) {
 			trace_printk("tracing_mark_write: B|%d|slowpath.duration(%dms)\n",
 				current->tgid, duration_ms);
-			pr_info("slowpath: %d(%s)(priority %d/%d) order=%d mask=0x%x"
+			pr_info_once("slowpath: %d(%s)(priority %d/%d) order=%d mask=0x%x"
 				" duration=%dms duration_runnable = %lldns"
 				" duration_running=%lldns\n",
 				current->pid, current->comm,
