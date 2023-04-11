@@ -92,7 +92,7 @@ build_kernel_image() {
         echo -e "${GRN}"
         script_echo "------------------------------------------------------------"
         script_echo "Compilation successful..."
-        script_echo "Image can be found at out/arch/arm64/boot/Image.gz"
+        script_echo "Image can be found at out/arch/arm64/boot/Image"
         script_echo  "------------------------------------------------------------"
         build_flashable_zip
     elif [ $SUCCESS -eq 130 ]
@@ -117,10 +117,10 @@ build_flashable_zip() {
     script_echo "I: Building kernel image..."
     echo -e "${GRN}"
     cp "$ORIGIN_DIR"/out/arch/arm64/boot/{Image,dtbo.img} CosmicFresh/
-    cp "$ORIGIN_DIR"/out/arch/arm64/boot/dts/qcom/nabu-sm8150-overlay.dtbo CosmicFresh/dtb
+    cp "$ORIGIN_DIR"/out/arch/arm64/boot/dtb.img CosmicFresh/dtb
     cd "$ORIGIN_DIR"/CosmicFresh/ || exit
     zip -r9 "CosmicFresh-R$KV-$DEVICE.zip" META-INF version anykernel.sh tools Image dtb dtbo.img
-    rm -rf {Image.gz,dtb,dtbo.img}
+    rm -rf {Image,dtb.img,dtbo.img}
     cd ../
 }
 
