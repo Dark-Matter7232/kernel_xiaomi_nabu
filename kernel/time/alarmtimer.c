@@ -16,7 +16,7 @@
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  */
-#define ENABLE_ALARMTIMER_RECORD
+#define ENABLE_ALARMTIMER_RECORD 0
 #include <linux/time.h>
 #include <linux/hrtimer.h>
 #include <linux/timerqueue.h>
