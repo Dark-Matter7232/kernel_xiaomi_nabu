@@ -120,7 +120,7 @@ build_flashable_zip() {
     cp "$ORIGIN_DIR"/out/arch/arm64/boot/dtb.img CosmicFresh/dtb
     cd "$ORIGIN_DIR"/CosmicFresh/ || exit
     zip -r9 "CosmicFresh-R$KV-$DEVICE.zip" META-INF version anykernel.sh tools Image dtb dtbo.img
-    rm -rf {Image,dtb.img,dtbo.img}
+    rm -rf {Image,dtb,dtbo.img}
     cd ../
 }
 
